@@ -21,7 +21,7 @@ app.get("/new-vm", async (req, res) => {
     const resp = await axios.post(
       "https://engine.hyperbeam.com/v0/vm",
       {},
-      { headers: { Authorization: `Bearer YOUR_HYPERBEAM_API_KEY` } }
+      { headers: { Authorization: `Bearer sk_live_26e2qaRQNBOLEd2l62x6MmftCqD4Pt4-IdHPZrufCYE` } }
     );
 
     res.json(resp.data); // contains embed_url
