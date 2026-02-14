@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bruh OS</title>
+  <style>
+    html, body { margin:0; padding:0; width:100%; height:100%; font-family:sans-serif; background:black; color:white; overflow:hidden; }
+    .hidden { display:none; }
+    .screen { width:100%; height:100%; position:relative; }
+    .center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+    input { padding:10px; border-radius:10px; border:2px solid white; background:black; color:white; margin-top:10px; }
+    button { padding:10px 20px; margin-top:10px; border:2px solid white; border-radius:12px; background:black; color:white; cursor:pointer; transition:all 0.2s ease; }
+    button:hover { background:white; color:black; transform:scale(1.05); }
+    .vm-container { width:90vw; height:80vh; border:2px solid white; border-radius:12px; overflow:hidden; margin:20px auto 0 auto; }
+    .controls { display:flex; justify-content:center; gap:20px; margin-top:10px; }
+  </style>
+</head>
+<body>
+
+<!-- Password Screen -->
+<div id="password-screen" class="screen">
+  <canvas id="bg-canvas"></canvas>
+  <div class="center">
+    <h1>Enter Password</h1>
+    <input type="password" id="password-input">
+    <button id="unlock-btn">Unlock</button>
+  </div>
+</div>
+
+<!-- Main Screen -->
+<div id="main-screen" class="screen hidden">
+  <canvas id="bg-canvas-main"></canvas>
+  <div class="vm-container" id="hyperbeam-container"></div>
+  <div class="controls">
+    <button id="start-btn">Start</button>
+    <button id="reset-btn">Reset</button>
+    <button id="fullscreen-btn">Fullscreen</button>
+  </div>
+</div>
+
+<script type="module">
+  import Hyperbeam from "https://cdn.jsdelivr.net/npm/@hyperbeam/web/dist/hyperbeam.min.js";
+
+  const PASSWORD = "bruh_09871iscool";
+  const passwordScreen = document.getElementById("password-screen");
+  const mainScreen = document.getElementById("main-screen");
+  const input = document.getElementById("password-input");
+  const unlockBtn = document.getElementById("unlock-btn");
+
+  unlockBtn.addEventListener("click", () => {
+    if(input.value === PASSWORD){
+      passwordScreen.classList.add("hidden");
+      mainScreen.classList.remove("hidden");
+      startParticles("bg-canvas-main");
+    } else {
+      alert("Wrong password");
+    }
+  });
+
+  // Particles
+  function startParticles(canvasId){
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const particles = Array.from({ length: 70 }).map(() => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,
+      speedX: Math.random() * 0.3 - 0.15,
+      speedY: Math.random() * 0.3 - 0.15,
+    }));
+    function animate(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      particles.forEach(p=>{
+        p.x += p.speedX;
+        p.y += p.speedY;
+        if(p.x<0||p.x>canvas.width)p.speedX*=-1;
+        if(p.y<0||p.y>canvas.height)p.speedY*=-1;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fillStyle="white";
+        ctx.fill();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  // Buttons
+  const startBtn = document.getElementById("start-btn");
+  const resetBtn = document.getElementById("reset-btn");
+  const fullscreenBtn = document.getElementById("fullscreen-btn");
+  const vmContainer = document.getElementById("hyperbeam-container");
+  let vmStarted = false;
+
+  startBtn.addEventListener("click", async ()=>{
+    if(vmStarted) return;
+    vmStarted = true;
+
+    const res = await fetch("/api/hyperbeam", { method:"POST" });
+    const data = await res.json();
+    Hyperbeam(vmContainer, data.embed_url);
+  });
+
+  resetBtn.addEventListener("click", ()=> window.location.reload());
+  fullscreenBtn.addEventListener("click", ()=> document.documentElement.requestFullscreen());
+</script>
+
+</body>
+</html>
