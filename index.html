@@ -6,26 +6,27 @@
 <style>
 html, body { margin:0; padding:0; width:100%; height:100%; font-family:sans-serif; background:black; color:white; overflow:hidden; }
 #main-screen { position:relative; width:100%; height:100%; }
-.vm-container { width:90vw; height:80vh; border:2px solid white; border-radius:12px; overflow:hidden; margin:20px auto 0 auto; position:relative; z-index:1; }
+.vm-container { width:90vw; height:80vh; border:2px solid white; border-radius:12px; overflow:hidden; margin:20px auto 0 auto; position:relative; z-index:1; transition: all 0.3s ease; }
 .controls { display:flex; justify-content:center; gap:20px; margin-top:10px; z-index:1; position:relative; }
 button { padding:10px 20px; border:2px solid white; border-radius:12px; background:black; color:white; cursor:pointer; transition:all 0.2s ease; }
 button:hover { background:white; color:black; transform:scale(1.05); }
 canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; }
+iframe { width:100%; height:100%; border:none; border-radius:12px; display:block; }
 </style>
 </head>
 <body>
 
 <div id="main-screen">
   <canvas id="bg-canvas"></canvas>
-  <div class="vm-container">
+  <div class="vm-container" id="vm-container">
     <iframe 
-      src="https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI"
-      style="width:100%; height:100%; border:none; border-radius:12px;">
+      id="hyperbeam-iframe"
+      src="https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI">
     </iframe>
   </div>
   <div class="controls">
     <button id="reset-btn">Reset</button>
-    <button id="fullscreen-btn">Fullscreen</button>
+    <button id="fullscreen-btn">Fullscreen VM</button>
   </div>
 </div>
 
@@ -38,11 +39,13 @@ function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-const particles = Array.from({ length: 80 }).map(() => ({
+const mouse = { x: null, y: null };
+window.addEventListener("mousemove", e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+const particles = Array.from({ length: 100 }).map(() => ({
   x: Math.random() * canvas.width,
   y: Math.random() * canvas.height,
   size: Math.random() * 2 + 1,
@@ -51,30 +54,57 @@ const particles = Array.from({ length: 80 }).map(() => ({
 }));
 
 function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(0,0,0,0.15)"; // trailing effect
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
   particles.forEach(p => {
+    // particle movement
     p.x += p.speedX;
     p.y += p.speedY;
+
+    // bounce off edges
     if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
     if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+
+    // repel from mouse
+    if (mouse.x && mouse.y) {
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 100) {
+        p.x += dx/dist * 2;
+        p.y += dy/dist * 2;
+      }
+    }
+
+    // draw particle with glow
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
     ctx.fillStyle = "white";
+    ctx.shadowColor = "white";
+    ctx.shadowBlur = 5;
     ctx.fill();
   });
+
   requestAnimationFrame(animate);
 }
 animate();
 
 // ---------- Buttons ----------
-document.getElementById("reset-btn").addEventListener("click", () => {
-  window.location.reload();
-});
+const resetBtn = document.getElementById("reset-btn");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+const vmContainer = document.getElementById("vm-container");
+const iframe = document.getElementById("hyperbeam-iframe");
 
-document.getElementById("fullscreen-btn").addEventListener("click", () => {
-  const el = document.documentElement;
-  if(el.requestFullscreen) el.requestFullscreen();
-  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+resetBtn.addEventListener("click", ()=> window.location.reload());
+
+// Fullscreen VM only
+fullscreenBtn.addEventListener("click", ()=>{
+  if(vmContainer.requestFullscreen){
+    vmContainer.requestFullscreen();
+  } else if(vmContainer.webkitRequestFullscreen){
+    vmContainer.webkitRequestFullscreen();
+  }
 });
 </script>
 
