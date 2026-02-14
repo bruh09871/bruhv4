@@ -4,15 +4,70 @@
 <meta charset="UTF-8">
 <title>Bruh OS</title>
 <style>
-html, body { margin:0; padding:0; width:100%; height:100%; font-family:sans-serif; background:black; color:white; overflow:hidden; }
+html, body {
+  margin:0; padding:0;
+  width:100%; height:100%;
+  font-family:sans-serif;
+  background-color:#000000; /* pure black */
+  color:white;
+  overflow:hidden;
+}
 #main-screen { position:relative; width:100%; height:100%; }
-.vm-container { width:90vw; height:80vh; border:2px solid white; border-radius:12px; overflow:hidden; margin:20px auto 0 auto; position:relative; z-index:1; }
-.controls { display:flex; justify-content:center; gap:20px; margin-top:10px; z-index:1; position:relative; }
-button { padding:10px 20px; border:2px solid white; border-radius:12px; background:black; color:white; cursor:pointer; transition:all 0.2s ease; }
+
+.vm-container {
+  width:90vw; height:80vh;
+  border:2px solid white;
+  border-radius:12px;
+  overflow:hidden;
+  margin:20px auto 0 auto;
+  position:relative;
+  z-index:1;
+}
+
+.controls {
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  margin-top:10px;
+  z-index:1;
+  position:relative;
+}
+
+button {
+  padding:10px 20px;
+  border:2px solid white;
+  border-radius:12px;
+  background:black;
+  color:white;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
 button:hover { background:white; color:black; transform:scale(1.05); }
-#lock-btn { position:absolute; top:10px; right:10px; z-index:2; min-width:120px; }
-canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; background:black; }
-iframe { width:100%; height:100%; border:none; border-radius:12px; display:block; }
+
+#new-vm-btn {
+  position:absolute;
+  bottom:20px;
+  right:20px;
+  z-index:2;
+  min-width:120px;
+}
+
+canvas {
+  position:absolute;
+  top:0;
+  left:0;
+  z-index:0;
+  pointer-events:none;
+  background:black;
+}
+
+iframe {
+  width:100%;
+  height:100%;
+  border:none;
+  border-radius:12px;
+  display:block;
+}
 </style>
 </head>
 <body>
@@ -29,7 +84,7 @@ iframe { width:100%; height:100%; border:none; border-radius:12px; display:block
     <button id="fullscreen-btn">Fullscreen</button>
   </div>
 
-  <button id="lock-btn">Lock (Password)</button>
+  <button id="new-vm-btn">New VM</button>
 </div>
 
 <script>
@@ -39,77 +94,84 @@ const ctx = canvas.getContext("2d");
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
+
 const mouse = { x:null, y:null };
 window.addEventListener("mousemove", e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-const particles = Array.from({ length:100 }).map(() => ({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, size: Math.random()*2+1, speedX: Math.random()*0.5-0.25, speedY: Math.random()*0.5-0.25 }));
+
+const particles = Array.from({ length:100 }).map(() => ({
+  x: Math.random()*canvas.width,
+  y: Math.random()*canvas.height,
+  size: Math.random()*2 + 1,
+  speedX: Math.random()*0.5 -0.25,
+  speedY: Math.random()*0.5 -0.25
+}));
+
 function animate() {
-  ctx.fillStyle="#000000";
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
-  particles.forEach(p=>{
-    p.x+=p.speedX; p.y+=p.speedY;
+
+  particles.forEach(p => {
+    p.x += p.speedX;
+    p.y += p.speedY;
     if(p.x<0||p.x>canvas.width)p.speedX*=-1;
     if(p.y<0||p.y>canvas.height)p.speedY*=-1;
-    if(mouse.x && mouse.y){ const dx=p.x-mouse.x; const dy=p.y-mouse.y; const dist=Math.sqrt(dx*dx+dy*dy); if(dist<100){ p.x+=dx/dist*2; p.y+=dy/dist*2; } }
-    ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-    ctx.fillStyle="white"; ctx.shadowColor="white"; ctx.shadowBlur=10; ctx.fill();
+    if(mouse.x && mouse.y){
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist<100){ p.x += dx/dist*2; p.y += dy/dist*2; }
+    }
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fillStyle="white";
+    ctx.shadowColor="white";
+    ctx.shadowBlur=10;
+    ctx.fill();
   });
+
   requestAnimationFrame(animate);
 }
 animate();
 
 // ---------- Buttons ----------
-const resetBtn=document.getElementById("reset-btn");
-const fullscreenBtn=document.getElementById("fullscreen-btn");
-const vmContainer=document.getElementById("vm-container");
-const iframe=document.getElementById("hyperbeam-iframe");
+const resetBtn = document.getElementById("reset-btn");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+const vmContainer = document.getElementById("vm-container");
+const iframe = document.getElementById("hyperbeam-iframe");
+const newVmBtn = document.getElementById("new-vm-btn");
 
-resetBtn.addEventListener("click",()=>window.location.reload());
+resetBtn.addEventListener("click", ()=> window.location.reload());
 
-fullscreenBtn.addEventListener("click",()=>{
+fullscreenBtn.addEventListener("click", ()=>{
   if(vmContainer.requestFullscreen) vmContainer.requestFullscreen();
   else if(vmContainer.webkitRequestFullscreen) vmContainer.webkitRequestFullscreen();
-  const flash=document.createElement("div");
-  flash.style.position="absolute"; flash.style.top=0; flash.style.left=0; flash.style.width="100%"; flash.style.height="100%";
+
+  // glow effect
+  const flash = document.createElement("div");
+  flash.style.position="absolute";
+  flash.style.top=0;
+  flash.style.left=0;
+  flash.style.width="100%";
+  flash.style.height="100%";
   flash.style.background="radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(0,0,0,0) 80%)";
-  flash.style.zIndex=5; flash.style.pointerEvents="none"; flash.style.transition="opacity 0.5s ease";
+  flash.style.zIndex=5;
+  flash.style.pointerEvents="none";
+  flash.style.transition="opacity 0.5s ease";
   vmContainer.appendChild(flash);
-  setTimeout(()=>{flash.style.opacity=0;},50);
-  setTimeout(()=>{vmContainer.removeChild(flash);},550);
+  setTimeout(()=> { flash.style.opacity=0; }, 50);
+  setTimeout(()=> { vmContainer.removeChild(flash); }, 550);
 });
 
-// ---------- Lock Button ----------
-const lockBtn=document.getElementById("lock-btn");
-let lockActive=false;
-let lockTimer=null;
-
-lockBtn.addEventListener("click", async ()=>{
-  if(lockActive){ alert("Lock is already active!"); return; }
-
-  const pwd=prompt("Enter password to lock others:");
-  if(pwd!=="bruh_09871iscool"){ alert("Wrong password!"); return; }
-
-  // Activate lock on backend
-  try{
-    const lockResp = await fetch(`http://localhost:8080/lock?password=${pwd}`);
-    const lockData = await lockResp.json();
-    if(lockData.success){
-      lockActive=true;
-      let timeLeft = 10*60;
-      lockBtn.innerText=`Locked: ${Math.floor(timeLeft/60)}:${("0"+timeLeft%60).slice(-2)}`;
-
-      // Request new private VM
-      const vmResp = await fetch("http://localhost:8080/new-vm");
-      const vmData = await vmResp.json();
-      iframe.src = vmData.embed_url;
-
-      // Countdown
-      lockTimer=setInterval(()=>{
-        timeLeft--;
-        lockBtn.innerText=`Locked: ${Math.floor(timeLeft/60)}:${("0"+timeLeft%60).slice(-2)}`;
-        if(timeLeft<=0){ clearInterval(lockTimer); lockActive=false; lockBtn.innerText="Lock (Password)"; alert("Lock expired!"); }
-      },1000);
-    } else { alert("Failed to lock!"); }
-  } catch(e){ alert("Error: "+e.message); }
+// ---------- New VM Button ----------
+newVmBtn.addEventListener("click", async () => {
+  try {
+    const resp = await fetch("http://localhost:8080/new-vm");
+    const data = await resp.json();
+    iframe.src = data.embed_url;
+    alert("New VM created!");
+  } catch (err) {
+    alert("Failed to create new VM: " + err.message);
+  }
 });
 </script>
 
