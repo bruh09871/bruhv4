@@ -8,7 +8,7 @@ html, body {
   margin:0; padding:0;
   width:100%; height:100%;
   font-family:sans-serif;
-  background-color:#000000; /* pure black */
+  background:black; /* pure black */
   color:white;
   overflow:hidden;
 }
@@ -76,7 +76,7 @@ iframe {
   <canvas id="bg-canvas"></canvas>
 
   <div class="vm-container" id="vm-container">
-    <iframe id="hyperbeam-iframe" src=""></iframe>
+    <iframe id="hyperbeam-iframe" src="YOUR_EMBED_URL_HERE"></iframe>
   </div>
 
   <div class="controls" id="controls">
@@ -162,16 +162,11 @@ fullscreenBtn.addEventListener("click", ()=>{
   setTimeout(()=> { vmContainer.removeChild(flash); }, 550);
 });
 
-// ---------- New VM Button ----------
-newVmBtn.addEventListener("click", async () => {
-  try {
-    const resp = await fetch("http://localhost:8080/new-vm");
-    const data = await resp.json();
-    iframe.src = data.embed_url;
-    alert("New VM created!");
-  } catch (err) {
-    alert("Failed to create new VM: " + err.message);
-  }
+// ---------- New VM Button (just reload iframe with same URL or change manually) ----------
+newVmBtn.addEventListener("click", ()=>{
+  // If you have a backend for new VM, replace this with fetch to server
+  iframe.src = iframe.src; // just reloads VM
+  alert("New VM loaded!");
 });
 </script>
 
