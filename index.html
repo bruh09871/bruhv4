@@ -5,86 +5,76 @@
 <title>Bruh OS</title>
 <style>
 html, body { margin:0; padding:0; width:100%; height:100%; font-family:sans-serif; background:black; color:white; overflow:hidden; }
-.vm-container { width:90vw; height:80vh; border:2px solid white; border-radius:12px; overflow:hidden; margin:20px auto 0 auto; z-index:1; position:relative; }
+#main-screen { position:relative; width:100%; height:100%; }
+.vm-container { width:90vw; height:80vh; border:2px solid white; border-radius:12px; overflow:hidden; margin:20px auto 0 auto; position:relative; z-index:1; }
 .controls { display:flex; justify-content:center; gap:20px; margin-top:10px; z-index:1; position:relative; }
 button { padding:10px 20px; border:2px solid white; border-radius:12px; background:black; color:white; cursor:pointer; transition:all 0.2s ease; }
 button:hover { background:white; color:black; transform:scale(1.05); }
 canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; }
-#main-screen { position:relative; width:100%; height:100%; }
 </style>
 </head>
 <body>
 
 <div id="main-screen">
   <canvas id="bg-canvas"></canvas>
-  <div class="vm-container" id="hyperbeam-container"></div>
+  <div class="vm-container">
+    <iframe 
+      src="https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI"
+      style="width:100%; height:100%; border:none; border-radius:12px;">
+    </iframe>
+  </div>
   <div class="controls">
     <button id="reset-btn">Reset</button>
     <button id="fullscreen-btn">Fullscreen</button>
   </div>
 </div>
 
-<script type="module">
-import Hyperbeam from "https://unpkg.com/@hyperbeam/web@latest/dist/index.js";
+<script>
+// ---------- Particles ----------
+const canvas = document.getElementById("bg-canvas");
+const ctx = canvas.getContext("2d");
 
-window.addEventListener("load", async ()=> {
-  // ---------- Particles ----------
-  const canvas = document.getElementById("bg-canvas");
-  const ctx = canvas.getContext("2d");
+function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+}
 
-  const particles = Array.from({ length: 70 }).map(() => ({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    size: Math.random() * 2 + 1,
-    speedX: Math.random() * 0.3 - 0.15,
-    speedY: Math.random() * 0.3 - 0.15,
-  }));
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
-  function animate(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particles.forEach(p=>{
-      p.x += p.speedX;
-      p.y += p.speedY;
-      if(p.x<0||p.x>canvas.width)p.speedX*=-1;
-      if(p.y<0||p.y>canvas.height)p.speedY*=-1;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-      ctx.fillStyle="white";
-      ctx.fill();
-    });
-    requestAnimationFrame(animate);
-  }
-  animate();
+const particles = Array.from({ length: 80 }).map(() => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  size: Math.random() * 2 + 1,
+  speedX: Math.random() * 0.5 - 0.25,
+  speedY: Math.random() * 0.5 - 0.25
+}));
 
-  // ---------- Hyperbeam VM ----------
-  const vmContainer = document.getElementById("hyperbeam-container");
-
-  try {
-    const resp = await fetch("/api/computer"); // Calls backend
-    const data = await resp.json();
-    const hb = await Hyperbeam(vmContainer, data.embed_url);
-  } catch (err) {
-    console.error("Failed to load Hyperbeam VM:", err);
-  }
-
-  // ---------- Buttons ----------
-  const resetBtn = document.getElementById("reset-btn");
-  const fullscreenBtn = document.getElementById("fullscreen-btn");
-
-  resetBtn.addEventListener("click", ()=> window.location.reload());
-  fullscreenBtn.addEventListener("click", ()=> {
-    const el = document.documentElement;
-    if(el.requestFullscreen){ el.requestFullscreen(); }
-    else if(el.webkitRequestFullscreen){ el.webkitRequestFullscreen(); }
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.speedX;
+    p.y += p.speedY;
+    if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+    ctx.fillStyle = "white";
+    ctx.fill();
   });
+  requestAnimationFrame(animate);
+}
+animate();
 
-  // Resize canvas
-  window.addEventListener("resize", ()=> {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
+// ---------- Buttons ----------
+document.getElementById("reset-btn").addEventListener("click", () => {
+  window.location.reload();
+});
+
+document.getElementById("fullscreen-btn").addEventListener("click", () => {
+  const el = document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 });
 </script>
 
