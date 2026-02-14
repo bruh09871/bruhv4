@@ -17,13 +17,11 @@ html, body {
   width:90vw; height:80vh;
   border:2px solid white; border-radius:12px;
   overflow:hidden; margin:20px auto 0 auto;
-  position:relative; z-index:2; /* on top of particles */
-  display:none; /* hide until boot done */
+  position:relative; z-index:1;
 }
 .controls {
   display:flex; justify-content:center; gap:20px;
-  margin-top:10px; z-index:2; position:relative;
-  display:none; /* hide until boot done */
+  margin-top:10px; z-index:1; position:relative;
 }
 button {
   padding:10px 20px; border:2px solid white;
@@ -33,28 +31,13 @@ button {
 button:hover { background:white; color:black; transform:scale(1.05); }
 
 canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; }
-#boot-screen {
-  position:absolute; top:0; left:0; width:100%; height:100%;
-  background:black; z-index:3; display:flex;
-  justify-content:center; align-items:center; flex-direction:column;
-}
-.boot-text {
-  color:white; font-size:2rem; text-align:center;
-  letter-spacing:2px;
-  animation: blink 1s step-start infinite;
-}
-@keyframes blink { 50% { opacity:0; } }
+iframe { width:100%; height:100%; border:none; border-radius:12px; display:block; }
 </style>
 </head>
 <body>
 
 <div id="main-screen">
   <canvas id="bg-canvas"></canvas>
-
-  <div id="boot-screen">
-    <div class="boot-text">Booting Bruh OS...</div>
-    <div class="boot-text" style="font-size:1.2rem; margin-top:10px;">Initializing Hyperbeam VM</div>
-  </div>
 
   <div class="vm-container" id="vm-container">
     <iframe 
@@ -89,7 +72,7 @@ const particles = Array.from({ length:100 }).map(() => ({
 }));
 
 function animate() {
-  ctx.fillStyle = "rgba(0,0,0,0.15)";
+  ctx.fillStyle = "rgba(0,0,0,0.1)"; // trailing effect without grey
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   particles.forEach(p => {
@@ -107,6 +90,7 @@ function animate() {
       if(dist<100){ p.x += dx/dist*2; p.y += dy/dist*2; }
     }
 
+    // draw particle
     ctx.beginPath();
     ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
     ctx.fillStyle="white";
@@ -118,22 +102,10 @@ function animate() {
 }
 animate();
 
-// ---------- Boot screen ----------
-const bootScreen = document.getElementById("boot-screen");
-const vmContainer = document.getElementById("vm-container");
-const controls = document.getElementById("controls");
-
-setTimeout(() => {
-  // hide boot, show VM and buttons
-  bootScreen.style.display = "none";
-  vmContainer.style.display = "block";
-  controls.style.display = "flex";
-}, 3000); // 3 seconds boot animation
-
 // ---------- Buttons ----------
 const resetBtn = document.getElementById("reset-btn");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
-const iframe = document.getElementById("hyperbeam-iframe");
+const vmContainer = document.getElementById("vm-container");
 
 resetBtn.addEventListener("click", ()=> window.location.reload());
 
@@ -146,3 +118,4 @@ fullscreenBtn.addEventListener("click", ()=>{
 
 </body>
 </html>
+
