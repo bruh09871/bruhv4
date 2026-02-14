@@ -8,66 +8,31 @@ html, body {
   margin:0; padding:0;
   width:100%; height:100%;
   font-family:sans-serif;
-  background:black; /* pure black */
+  background-color: #000000; /* Pure black */
   color:white;
   overflow:hidden;
 }
 #main-screen { position:relative; width:100%; height:100%; }
-
 .vm-container {
   width:90vw; height:80vh;
-  border:2px solid white;
-  border-radius:12px;
-  overflow:hidden;
-  margin:20px auto 0 auto;
-  position:relative;
-  z-index:1;
+  border:2px solid white; border-radius:12px;
+  overflow:hidden; margin:20px auto 0 auto;
+  position:relative; z-index:1;
+  transition: all 0.3s ease;
 }
-
 .controls {
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  margin-top:10px;
-  z-index:1;
-  position:relative;
+  display:flex; justify-content:center; gap:20px;
+  margin-top:10px; z-index:1; position:relative;
 }
-
 button {
-  padding:10px 20px;
-  border:2px solid white;
-  border-radius:12px;
-  background:black;
-  color:white;
-  cursor:pointer;
-  transition:all 0.2s ease;
+  padding:10px 20px; border:2px solid white;
+  border-radius:12px; background:black; color:white;
+  cursor:pointer; transition:all 0.2s ease;
 }
 button:hover { background:white; color:black; transform:scale(1.05); }
 
-#new-vm-btn {
-  position:absolute;
-  bottom:20px;
-  right:20px;
-  z-index:2;
-  min-width:120px;
-}
-
-canvas {
-  position:absolute;
-  top:0;
-  left:0;
-  z-index:0;
-  pointer-events:none;
-  background:black;
-}
-
-iframe {
-  width:100%;
-  height:100%;
-  border:none;
-  border-radius:12px;
-  display:block;
-}
+canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; background-color:black; }
+iframe { width:100%; height:100%; border:none; border-radius:12px; display:block; }
 </style>
 </head>
 <body>
@@ -76,15 +41,18 @@ iframe {
   <canvas id="bg-canvas"></canvas>
 
   <div class="vm-container" id="vm-container">
-    <iframe id="hyperbeam-iframe" src="YOUR_EMBED_URL_HERE"></iframe>
+    <iframe 
+      id="hyperbeam-iframe"
+      src="https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI">
+    </iframe>
   </div>
 
-  <div class="controls" id="controls">
-    <button id="reset-btn">Reset</button>
-    <button id="fullscreen-btn">Fullscreen</button>
-  </div>
+<div class="controls" id="controls">
+  <button id="reset-btn">Reset</button>
+  <button id="fullscreen-btn">Fullscreen</button>
+</div>
 
-  <button id="new-vm-btn">New VM</button>
+  </div>
 </div>
 
 <script>
@@ -107,20 +75,26 @@ const particles = Array.from({ length:100 }).map(() => ({
 }));
 
 function animate() {
-  ctx.fillStyle = "#000000";
+  // draw black background
+  ctx.fillStyle = "#000000"; // pure black
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   particles.forEach(p => {
     p.x += p.speedX;
     p.y += p.speedY;
+
     if(p.x<0||p.x>canvas.width)p.speedX*=-1;
     if(p.y<0||p.y>canvas.height)p.speedY*=-1;
+
+    // repel from mouse
     if(mouse.x && mouse.y){
       const dx = p.x - mouse.x;
       const dy = p.y - mouse.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
       if(dist<100){ p.x += dx/dist*2; p.y += dy/dist*2; }
     }
+
+    // draw particle with glow
     ctx.beginPath();
     ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
     ctx.fillStyle="white";
@@ -137,16 +111,15 @@ animate();
 const resetBtn = document.getElementById("reset-btn");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const vmContainer = document.getElementById("vm-container");
-const iframe = document.getElementById("hyperbeam-iframe");
-const newVmBtn = document.getElementById("new-vm-btn");
 
 resetBtn.addEventListener("click", ()=> window.location.reload());
 
+// fullscreen only for VM + glow effect
 fullscreenBtn.addEventListener("click", ()=>{
   if(vmContainer.requestFullscreen) vmContainer.requestFullscreen();
   else if(vmContainer.webkitRequestFullscreen) vmContainer.webkitRequestFullscreen();
 
-  // glow effect
+  // glow flash effect
   const flash = document.createElement("div");
   flash.style.position="absolute";
   flash.style.top=0;
@@ -160,13 +133,6 @@ fullscreenBtn.addEventListener("click", ()=>{
   vmContainer.appendChild(flash);
   setTimeout(()=> { flash.style.opacity=0; }, 50);
   setTimeout(()=> { vmContainer.removeChild(flash); }, 550);
-});
-
-// ---------- New VM Button (just reload iframe with same URL or change manually) ----------
-newVmBtn.addEventListener("click", ()=>{
-  // If you have a backend for new VM, replace this with fetch to server
-  iframe.src = iframe.src; // just reloads VM
-  alert("New VM loaded!");
 });
 </script>
 
