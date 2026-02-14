@@ -2,7 +2,7 @@
 import fetch from "node-fetch"; // If using Node 18+, fetch is built-in, no need to import
 
 // Replace with your premium Hyperbeam API key
-const API_KEY = "YOUR_HYPERBEAM_API_KEY_HERE";
+const API_KEY = "sk_live_26e2qaRQNBOLEd2l62x6MmftCqD4Pt4-IdHPZrufCYE";
 
 // Optional: URL you want the VM to open first
 const START_URL = "https://google.com";
