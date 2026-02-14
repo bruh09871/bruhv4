@@ -8,21 +8,23 @@ html, body {
   margin:0; padding:0;
   width:100%; height:100%;
   font-family:sans-serif;
-  background-color: #000000; /* Pure black */
+  background-color:#000000;
   color:white;
   overflow:hidden;
 }
 #main-screen { position:relative; width:100%; height:100%; }
+.mode-select {
+  display:flex; justify-content:center; gap:20px; margin-top:10px; z-index:2;
+}
 .vm-container {
   width:90vw; height:80vh;
   border:2px solid white; border-radius:12px;
   overflow:hidden; margin:20px auto 0 auto;
   position:relative; z-index:1;
-  transition: all 0.3s ease;
 }
 .controls {
   display:flex; justify-content:center; gap:20px;
-  margin-top:10px; z-index:1; position:relative;
+  margin-top:10px; z-index:2; position:relative;
 }
 button {
   padding:10px 20px; border:2px solid white;
@@ -30,8 +32,7 @@ button {
   cursor:pointer; transition:all 0.2s ease;
 }
 button:hover { background:white; color:black; transform:scale(1.05); }
-
-canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; background-color:black; }
+canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; }
 iframe { width:100%; height:100%; border:none; border-radius:12px; display:block; }
 </style>
 </head>
@@ -40,18 +41,19 @@ iframe { width:100%; height:100%; border:none; border-radius:12px; display:block
 <div id="main-screen">
   <canvas id="bg-canvas"></canvas>
 
-  <div class="vm-container" id="vm-container">
-    <iframe 
-      id="hyperbeam-iframe"
-      src="https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI">
-    </iframe>
+  <!-- Mode selection -->
+  <div class="mode-select">
+    <button id="single-btn">Single Player</button>
+    <button id="multi-btn">Multiplayer</button>
   </div>
 
-  <div class="controls" id="controls">
-  <button id="reset-btn">Reset</button>
-  <button id="fullscreen-btn">Fullscreen</button>
-</div>
+  <div class="vm-container" id="vm-container" style="display:none;">
+    <iframe id="hyperbeam-iframe" src=""></iframe>
+  </div>
 
+  <div class="controls" id="controls" style="display:none;">
+    <button id="reset-btn">Reset</button>
+    <button id="fullscreen-btn">Fullscreen</button>
   </div>
 </div>
 
@@ -75,26 +77,20 @@ const particles = Array.from({ length:100 }).map(() => ({
 }));
 
 function animate() {
-  // draw black background
-  ctx.fillStyle = "#000000"; // pure black
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   particles.forEach(p => {
     p.x += p.speedX;
     p.y += p.speedY;
-
     if(p.x<0||p.x>canvas.width)p.speedX*=-1;
     if(p.y<0||p.y>canvas.height)p.speedY*=-1;
-
-    // repel from mouse
     if(mouse.x && mouse.y){
       const dx = p.x - mouse.x;
       const dy = p.y - mouse.y;
       const dist = Math.sqrt(dx*dx + dy*dy);
       if(dist<100){ p.x += dx/dist*2; p.y += dy/dist*2; }
     }
-
-    // draw particle with glow
     ctx.beginPath();
     ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
     ctx.fillStyle="white";
@@ -111,15 +107,35 @@ animate();
 const resetBtn = document.getElementById("reset-btn");
 const fullscreenBtn = document.getElementById("fullscreen-btn");
 const vmContainer = document.getElementById("vm-container");
+const iframe = document.getElementById("hyperbeam-iframe");
+
+// Single Player & Multiplayer buttons
+const singleBtn = document.getElementById("single-btn");
+const multiBtn = document.getElementById("multi-btn");
+
+// Multiplayer embed URL (shared session)
+const multiEmbed = "https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI";
+
+// Single Player API endpoint (you need to create backend or use a private embed)
+// For demo purposes, we'll just fake a different embed URL
+const singleEmbed = "https://vwdrccwgpv181powg61ggyvy.hyperbeam.com/Uvloy2c5QZeD1yMF_l1vVA?token=c8iw3SmQglOU0ugfLr3dWY2LalSKI_WOGUldEt8knbw";
+
+function loadVM(url){
+  iframe.src = url;
+  vmContainer.style.display = "block";
+  document.getElementById("controls").style.display = "flex";
+}
+
+singleBtn.addEventListener("click", ()=> loadVM(singleEmbed));
+multiBtn.addEventListener("click", ()=> loadVM(multiEmbed));
 
 resetBtn.addEventListener("click", ()=> window.location.reload());
 
-// fullscreen only for VM + glow effect
+// fullscreen only for VM + glow flash
 fullscreenBtn.addEventListener("click", ()=>{
   if(vmContainer.requestFullscreen) vmContainer.requestFullscreen();
   else if(vmContainer.webkitRequestFullscreen) vmContainer.webkitRequestFullscreen();
 
-  // glow flash effect
   const flash = document.createElement("div");
   flash.style.position="absolute";
   flash.style.top=0;
