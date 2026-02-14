@@ -25,9 +25,9 @@ canvas { position:absolute; top:0; left:0; z-index:0; pointer-events:none; }
 </div>
 
 <script type="module">
-import Hyperbeam from "https://cdn.jsdelivr.net/npm/@hyperbeam/web/dist/hyperbeam.min.js";
+import Hyperbeam from "https://unpkg.com/@hyperbeam/web@latest/dist/index.js";
 
-window.addEventListener("load", ()=> {
+window.addEventListener("load", async ()=> {
   // ---------- Particles ----------
   const canvas = document.getElementById("bg-canvas");
   const ctx = canvas.getContext("2d");
@@ -60,12 +60,14 @@ window.addEventListener("load", ()=> {
 
   // ---------- Hyperbeam VM ----------
   const vmContainer = document.getElementById("hyperbeam-container");
-  const EMBED_URL = "https://9v9uzaxrpyew7sym3zcn2jzqn.hyperbeam.com/TnztQ23hQ2uGwiJfMMv1uA?token=gv1ZBugMT9eazHQcV4D2Cz4ZlY4IRD7BjWkzdiJh4ZI";
-  
-  // Load VM after a tiny delay to let canvas render
-  setTimeout(()=> {
-    Hyperbeam(vmContainer, EMBED_URL);
-  }, 100);
+
+  try {
+    const resp = await fetch("/api/computer"); // Calls backend
+    const data = await resp.json();
+    const hb = await Hyperbeam(vmContainer, data.embed_url);
+  } catch (err) {
+    console.error("Failed to load Hyperbeam VM:", err);
+  }
 
   // ---------- Buttons ----------
   const resetBtn = document.getElementById("reset-btn");
@@ -74,14 +76,11 @@ window.addEventListener("load", ()=> {
   resetBtn.addEventListener("click", ()=> window.location.reload());
   fullscreenBtn.addEventListener("click", ()=> {
     const el = document.documentElement;
-    if(el.requestFullscreen){
-      el.requestFullscreen();
-    } else if(el.webkitRequestFullscreen){
-      el.webkitRequestFullscreen();
-    }
+    if(el.requestFullscreen){ el.requestFullscreen(); }
+    else if(el.webkitRequestFullscreen){ el.webkitRequestFullscreen(); }
   });
 
-  // ---------- Resize canvas ----------
+  // Resize canvas
   window.addEventListener("resize", ()=> {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
